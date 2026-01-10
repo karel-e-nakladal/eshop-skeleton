@@ -1,7 +1,7 @@
 Eshop skeleton
 =================
 
-A eshop web app skeleton made with  [Nette framework](https://nette.org/en/)
+An eshop web app skeleton made with  [Nette framework](https://nette.org/en/)
 
 
 Requirements
@@ -11,7 +11,7 @@ This Web Project is compatible with Nette 3.2 and requires PHP 8.4.
 
 Use MySQL as database.
 
-Install Vite to be able to build assets (npm is required)
+Install Vite and other packages to be able to build assets (npm is required)
 ```
 	npm install
 ```
@@ -21,8 +21,7 @@ Installation
 
 1. To install the App run
 ```
-	git clone ***
-
+	git clone https://github.com/karel-e-nakladal/eshop-skeleton
 ```
 
 2. Migrate the database
@@ -54,10 +53,10 @@ To have MHR enabled run
 To createt account with Administratice privilages run
 
 ```
-php bin/createAdmin.php
+	php bin/createAdmin.php
 ```
 
-then select an email, username and password.
+then type in an email, username and password.
 
 Web Server Setup
 ----------------
