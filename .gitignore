@@ -1,0 +1,5 @@
+vendor
+composer.lock
+www/assets
+node_modules
+package-lock.json

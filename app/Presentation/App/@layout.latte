@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width">
+
+	<title>{ifset title}{include title|stripHtml} | {/ifset}Nette Web</title>
+
+	{asset? 'main.js'}
+</head>
+
+<body>
+	<nav>
+		<ul>
+			<li><a n:href="Home:"><img src="{$basePath}/img/persistent/logo.png"></a></li>
+			<li><a n:href="Home:">Home</a></li>
+			{if $user->isLoggedIn()}
+				<li><a n:href="Profile:">Profile</a></li>
+				<li><a n:href="Sign:out">Sign out</a></li>
+			{else}
+				<li><a n:href="Sign:in">Sign in</a></li>
+				<li><a n:href="Sign:up">Sign up</a></li>
+			{/if}
+		</ul>
+	</nav>
+	<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+
+	{include content}
+</body>
+</html>
