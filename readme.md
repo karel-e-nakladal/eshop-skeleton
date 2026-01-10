@@ -23,8 +23,7 @@ Installation
 ```
 	git clone https://github.com/karel-e-nakladal/eshop-skeleton
 ```
-~
-2. Migrate the database~
+~2. Migrate the database~
 ```
 	php bin/migrate
 ```
