@@ -11,20 +11,28 @@
 
 <body>
 	<nav>
-		<ul>
+		<ul class="left-menu">
 			<li><a n:href="Home:"><img src="{$basePath}/img/persistent/logo.png"></a></li>
 			<li><a n:href="Home:">Home</a></li>
+		</ul>
+		<ul class="right-menu">
 			{if $user->isLoggedIn()}
+
+				<li><a n:href="Profile:"><img src="{$basePath}/{$user->getIdentity()->avatar}" alt="avatar" width="32px" height="32px"></a></li>
 				<li><a n:href="Profile:">Profile</a></li>
 				<li><a n:href="Sign:out">Sign out</a></li>
 			{else}
 				<li><a n:href="Sign:in">Sign in</a></li>
-				<li><a n:href="Sign:up">Sign up</a></li>
+				<li><a n:href="Sign:up" class="hig-btn">Sign up</a></li>
 			{/if}
 		</ul>
 	</nav>
-	<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
-
+	<div id="flash-container">
+		<div id="progress-bar"></div>
+		<div id="flash-messages">
+			<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
+		</div>
+	</div>
 	{include content}
 </body>
 </html>

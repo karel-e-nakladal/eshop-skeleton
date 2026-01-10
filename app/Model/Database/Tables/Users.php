@@ -23,6 +23,10 @@ enum Users: string{
      */
     case Password = 'password';
     /**
+     * Avatar of the user
+     */
+    case Avatar = 'avatar';
+    /**
      * First name of the user
      */
     case Firstname = 'firstname';
@@ -42,6 +46,10 @@ enum Users: string{
      * Roles assigned to the user
      */
     case Roles = 'roles';
+    /**
+     * When the user was verified
+     */
+    case VerifiedAt = 'verified_at';
     /**
      * When the user was created
      */
