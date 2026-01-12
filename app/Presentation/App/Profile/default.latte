@@ -1,0 +1,13 @@
+{block content}
+
+<div>
+    <h1>Profile</h1>
+    <img src="{$basePath}/{$user->getIdentity()->avatar}" alt="Avatar" width="128px" height="128px">
+    <h2>Username: {$user->getIdentity()->username}</h2>
+    <h2>Firstname: {$user->getIdentity()->firstname ?? "Not set"}</h2>
+    <h2>Lastname: {$user->getIdentity()->lastname ?? "Not set"}</h2>
+    <h2>Email: {$user->getIdentity()->email}</h2>
+    <h2>Phone number: {$user->getIdentity()->phone ?? "Not set"}</h2>
+    <h2>Account role: {$user->getIdentity()->roles[0]}</h2>
+    <h2>Account status: {$user->getIdentity()->verified_at != null ? "Account verified" : "Account not verified"}</h2>
+</div>

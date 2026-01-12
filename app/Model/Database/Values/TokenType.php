@@ -7,7 +7,7 @@ namespace App\Model\Database\Values;
  */
 enum TokenType: string{
     /**
-     * Verification token
+     * Email verification token
      */
     case Verification = 'VERIFICATION';
     /**
@@ -15,7 +15,15 @@ enum TokenType: string{
      */ 
     case PasswordReset = 'PASSWORDRESET';
     /**
-     * Cancelation token
+     * Email cancelation token
      */
     case Cancelation = 'CANCELATION';
+    /**
+     *  Address blocking token
+     */
+    case AddressBlock = 'ADDRESSBLOCK';
+    /**
+     *  Two factor authentification token
+     */
+    case TwoFactor = 'TWOFACTOR';
 }

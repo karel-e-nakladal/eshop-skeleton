@@ -5,13 +5,22 @@ namespace App\Model\Forms;
 
 use Nette\Application\UI\Form;
 
+/**
+ * Form factory for signing in the user
+ */
 final class SignInFormFactory{
 
+    /**
+     * username = Username;
+     * password = Password;
+     *
+     * @return Form
+     */
     public function create(): Form
     {
         $form = new Form;
 
-        $form->addEmail('username', 'Username')
+        $form->addText('username', 'Username')
             ->setHtmlAttribute('placeholder', 'username')
             ->setRequired();
 

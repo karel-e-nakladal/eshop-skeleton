@@ -4,6 +4,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    color: $text-color;
 }
 
 .hig-btn{
@@ -19,13 +20,21 @@ a{
     text-decoration: none;
 }
 
+input{
+    background-color: $background-color;
+    border-radius: 5px;
+    padding: 5px;
+    border-color: $background-color-light;
+}
+
 #flash-container{
     position: fixed;
     display: none;
     top: 50px;
     right: 0px;
-    padding: 10px 20px;
+    padding: 5px;
     z-index: 1000;
+    border-radius: 5px;
     background-color: $text-color;
     transition: right 0.5s ease-in-out;
 
@@ -47,16 +56,16 @@ a{
     
     #progress-bar {
         position: absolute;
-        top: 0;
+        top: 5px;
         left: 0;
         height: 4px;
-        width: 100%;
         background: #ae00ff;
+        width: 100%;
     }
 
     .flash{
-        padding: 10px 20px;
-        margin-bottom: 10px;
+        padding: 5px 10px;
+        margin-top: 5px;
         border-radius: 15px;
     }
 }

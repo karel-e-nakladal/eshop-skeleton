@@ -5,8 +5,18 @@ namespace App\Model\Forms;
 
 use Nette\Application\UI\Form;
 
+/**
+ * Form factory for signing up the user
+ */
 final class SignUpFormFactory{
 
+    /**
+     * username = Username;
+     * email = Email;
+     * password = Password;
+     *
+     * @return Form
+     */
     public function create(): Form
     {
         $form = new Form;
@@ -19,7 +29,7 @@ final class SignUpFormFactory{
             ->setHtmlAttribute('placeholder', 'example@google.com')
             ->setRequired();
             
-            $form->addPassword('password', 'Password')
+        $form->addPassword('password', 'Password')
             ->setHtmlAttribute('placeholder', '********')
             ->setRequired();
 

@@ -33,6 +33,11 @@
 			<div n:foreach="$flashes as $flash" n:class="flash, $flash->type">{$flash->message}</div>
 		</div>
 	</div>
-	{include content}
+	<div>
+		{if $presenter->getName() == "App:Profile"}
+			{include "../Accessory/@profileMenu.latte"}
+		{/if}
+		{include content}
+	</div>
 </body>
 </html>

@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace App\Presentation\App\Sign;
 
-use App\Model\Forms\SignInFormFactory;
-use App\Model\Forms\SignUpFormFactory;
-use App\Model\SecurityFacade;
-use App\Presentation\App\AppBasePresenter;
 use Nette;
 use Nette\Application\UI\Form;
+use Nette\Application\Attributes\Persistent;
+use App\Model\Forms\SignInFormFactory;
+use App\Model\Forms\SignUpFormFactory;
+use App\Model\Database\Facades\SecurityFacade;
+use App\Presentation\App\AppBasePresenter;
 
 final class SignPresenter extends AppBasePresenter{
+
+
+    #[Persistent]
+    public string $backlink = '';
 
     public function __construct(
         private SignInFormFactory $signInFormFactory,
@@ -25,16 +30,10 @@ final class SignPresenter extends AppBasePresenter{
 
     public function renderIn(): void
     {
-        $form = $this->signInFormFactory->create();
-        $form->onSuccess[] = function (Nette\Forms\Form $form, \stdClass $values): void {
-            try {
-                $this->getUser()->login($values->email, $values->password);
-                $this->flashMessage('You have been signed in.', 'success');
-                $this->redirect('Home:');
-            } catch (Nette\Security\AuthenticationException $e) {
-                $form->addError('Invalid email or password.');
-            }
-        };
+        if($this->user->isLoggedIn()){
+            $this->flashMessage('You are already logged in', 'error');
+            $this->redirect('Home:');
+        }
     }
     public function createComponentSignInForm(): Form
     {
@@ -43,8 +42,10 @@ final class SignPresenter extends AppBasePresenter{
             try {
                 $this->getUser()->login($values->username, $values->password);
                 $this->flashMessage('You have been signed in.', 'success');
+                $this->restoreRequest($this->backlink);
                 $this->redirect('Home:');
             } catch (Nette\Security\AuthenticationException $e) {
+                bdump($e->getMessage());
                 $form->addError('Invalid email or password.');
             }
         };
@@ -53,7 +54,10 @@ final class SignPresenter extends AppBasePresenter{
     
     public function renderUp(): void
     {
-        
+        if($this->user->isLoggedIn()){
+            $this->flashMessage('You are already logged in', 'error');
+            $this->redirect('Home:');
+        }
     }    
 
     public function createComponentSignUpForm(): Form
@@ -68,6 +72,7 @@ final class SignPresenter extends AppBasePresenter{
                 );
                 $this->getUser()->login($values->username, $values->password);
                 $this->flashMessage('You have been signed up.', 'success');
+                $this->restoreRequest($this->backlink);
                 $this->redirect('Home:');
             } catch (Nette\Security\AuthenticationException $e) {
                 $form->addError('Sign-up failed.');
@@ -78,8 +83,13 @@ final class SignPresenter extends AppBasePresenter{
 
     public function actionOut(): void
     {
-        $this->getUser()->logout(true);
-        $this->flashMessage('You have been signed out.', 'success');
-        $this->redirect('Home:');
+        if($this->user->isLoggedIn()){
+            $this->getUser()->logout(true);
+            $this->flashMessage('You have been signed out.', 'success');
+            $this->redirect('Home:');
+        }else{
+            $this->flashMessage('You are not logged in', 'error');
+            $this->redirect('Home:');
+        }
     }
 }

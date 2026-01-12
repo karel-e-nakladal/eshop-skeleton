@@ -1,0 +1,19 @@
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Noreply</title>
+</head>
+<body>
+    <h1>Dear {$username}, your account has been accessed from new address</h1>
+    <h2>Details</h2>
+    <ul>
+        <li><b>Address: </b> {$address}</li>
+        <li><b>Occurrence: </b> {$occurrence}</li>
+    </ul>
+    <p>Please click <a href="{$authenticationLink}">here</a> to authenticate.</p>
+    <h2>If you dont recognize this activity please change your password or contact our support imidietly</h2>
+    <p>Alternatively you can click <a href="{$blockLink}"> here </a> to temporarly block the address, if you do so please imidietly change your password</p>
+    <p>We highly recomend to enable two factor authentification via email. You can find this option in your profile</p>
+
+</body>
+</html>

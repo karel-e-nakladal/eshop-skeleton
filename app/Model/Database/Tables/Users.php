@@ -43,7 +43,11 @@ enum Users: string{
      */
     case Phone = 'phone';
     /**
-     * Roles assigned to the user
+     * Two factor authentification (available values can be found in Values\UserTwoFactor)
+     */
+    case TwoFactor = 'two_factor';
+    /**
+     * Roles assigned to the user (available valuse can be found in Values\Roles)
      */
     case Roles = 'roles';
     /**
