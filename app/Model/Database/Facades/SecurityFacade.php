@@ -18,6 +18,7 @@ use App\Model\Database\Tables\Users;
 use App\Model\Database\Tables\UserTokenes;
 use App\Model\Database\Values\RememberAccesses;
 use App\Model\Database\Values\TokenType;
+use App\Model\Database\Values\UserTwoFactor;
 use Nette\Http\Request;
 
 final class SecurityFacade implements Nette\Security\Authenticator
@@ -66,50 +67,47 @@ final class SecurityFacade implements Nette\Security\Authenticator
 		// Checking address of connection
 		$address = $this->httpRequest->getRemoteAddress();
 
-		$check = $this->database->table(UserAccesses::Table->value)
+		$now = new DateTime();
+		$tokenExpiration = new DateTime()->modify("+7 day");
+
+		// Checking if user has 2FA enabled
+		if($row[Users::TwoFactor->value] == UserTwoFactor::True->value){
+			
+			$authCheck = $this->database->table(UserAccesses::Table->value)
 			->where(UserAccesses::UserId->value, $row[Users::Id->value])
 			->where(UserAccesses::From->value, $address)
-			->whereOr([
-				UserAccesses::Remember->value => RememberAccesses::True->value,
-				UserAccesses::CreatedAt->value => new DateTime()->modify("-7 day")
-				])
+			->where(UserAccesses::Remember->value, RememberAccesses::True->value,)
 			->fetch();
-
-		// If the address is not verified or is older than week
-		if(!$check){
-			$now = new DateTime();
-			$tokenExpiration = $now->modify("+7 day");
 			
-			// Creating access record
-			$access = $this->database->table(UserAccesses::Table->value)
-			->insert([
-				UserAccesses::UserId->value => $row[Users::Id->value],
-				UserAccesses::From->value => $address,
-				UserAccesses::CreatedAt->value => $now
-			]);
-			
-			// Creating address blocking token
-			$blockToken = bin2hex(random_bytes(32));
-			$token = $this->database->table(UserTokenes::Table->value)->insert([
-				UserTokenes::UserId->value => $row[Users::Id->value],
-				UserTokenes::TokenHash->value => hash('sha256', $blockToken),
-				UserTokenes::Type->value => TokenType::AddressBlock->value,
-				UserTokenes::CreatedAt->value => $now,
-				UserTokenes::ExpiresAt->value => $tokenExpiration,
-			]);
-			
-			// Connecting token and access record
-			$this->database->table(AccessTokens::Table->value)
-			->insert([
-				AccessTokens::UserAccess->value => $access[UserAccesses::Id->value],
-				AccessTokens::UserToken->value => $token[UserTokenes::Id->value]
-			]);
-			
-			// Checking if user has 2FA enabled
-			if($row[Users::TwoFactor->value]){
+			if(!$authCheck){
+				// Creating access record
+				$access = $this->database->table(UserAccesses::Table->value)
+				->insert([
+					UserAccesses::UserId->value => $row[Users::Id->value],
+					UserAccesses::From->value => $address,
+					UserAccesses::CreatedAt->value => $now
+				]);
+				
+				// Creating address blocking token
+				$blockToken = bin2hex(random_bytes(32));
+				$token = $this->database->table(UserTokenes::Table->value)->insert([
+					UserTokenes::UserId->value => $row[Users::Id->value],
+					UserTokenes::TokenHash->value => hash('sha256', $blockToken),
+					UserTokenes::Type->value => TokenType::AddressBlock->value,
+					UserTokenes::CreatedAt->value => $now,
+					UserTokenes::ExpiresAt->value => $tokenExpiration,
+				]);
+				
+				// Connecting token and access record
+				$this->database->table(AccessTokens::Table->value)
+				->insert([
+					AccessTokens::UserAccess->value => $access[UserAccesses::Id->value],
+					AccessTokens::UserToken->value => $token[UserTokenes::Id->value]
+				]);
+				
 				// Creating 2FA token
 				$authenticationToken = bin2hex(random_bytes(32));
-				$authenticationTokenExpiration = $now->modify("+1 hour");
+				$authenticationTokenExpiration = new DateTime()->modify("+1 hour");
 				$twoFactorToken = $this->database->table(UserTokenes::Table->value)->insert([
 					UserTokenes::UserId->value => $row[Users::Id->value],
 					UserTokenes::TokenHash->value => hash('sha256', $authenticationToken),
@@ -118,14 +116,55 @@ final class SecurityFacade implements Nette\Security\Authenticator
 					UserTokenes::ExpiresAt->value => $authenticationTokenExpiration,
 				]);
 
+				// Connecting token and access record
+				$this->database->table(AccessTokens::Table->value)
+					->insert([
+						AccessTokens::UserAccess->value => $access[UserAccesses::Id->value],
+						AccessTokens::UserToken->value => $twoFactorToken[UserTokenes::Id->value]
+					]);
+	
 				// Sending an email with 2FA token and information about login
 				$this->mailService->sendTwoFactor($row[Users::Id->value], $row[Users::Email->value], $row[Users::Username->value], $address, $now->__toString(), $authenticationToken, $blockToken);
 				throw new AddressNotVerified("You have logged in from new address, please check your email for more information");
-			}else{
+			}
+		}else{
+			
+			$check = $this->database->table(UserAccesses::Table->value)
+				->where(UserAccesses::UserId->value, $row[Users::Id->value])
+				->where(UserAccesses::From->value, $address)
+				->where(UserAccesses::CreatedAt->value . ' >= ? ', new DateTime()->modify("-7 days"))
+				->fetch();
+
+			if(!$check){
+			
+				// Creating access record
+				$access = $this->database->table(UserAccesses::Table->value)
+				->insert([
+					UserAccesses::UserId->value => $row[Users::Id->value],
+					UserAccesses::From->value => $address,
+					UserAccesses::CreatedAt->value => $now
+				]);
+				
+				// Creating address blocking token
+				$blockToken = bin2hex(random_bytes(32));
+				$token = $this->database->table(UserTokenes::Table->value)->insert([
+					UserTokenes::UserId->value => $row[Users::Id->value],
+					UserTokenes::TokenHash->value => hash('sha256', $blockToken),
+					UserTokenes::Type->value => TokenType::AddressBlock->value,
+					UserTokenes::CreatedAt->value => $now,
+					UserTokenes::ExpiresAt->value => $tokenExpiration,
+				]);
+				
+				// Connecting token and access record
+				$this->database->table(AccessTokens::Table->value)
+					->insert([
+						AccessTokens::UserAccess->value => $access[UserAccesses::Id->value],
+						AccessTokens::UserToken->value => $token[UserTokenes::Id->value]
+					]);
+
 				// Sending an email with information about login
 				$this->mailService->sendLoginNotification($row[Users::Id->value], $row[Users::Email->value], $row[Users::Username->value], $address, $now->__toString(), $blockToken);
 			}
-			
 		}
 
 		$arr = $row->toArray();
@@ -276,7 +315,47 @@ final class SecurityFacade implements Nette\Security\Authenticator
 	}
 
 	public function authenticateAddress(int $id, string $token){
+	/*	$user = $this->database->table(Users::Table->value)
+			->select('*')
+			->where(Users::Id->value, $id)
+			->where(Users::DeletedAt->value, null)
+			->fetch();
 
+		if( !$user) {
+			throw new RowDoesntExistException("User not found", 404);
+		}
+		$token = $this->database->table(UserTokenes::Table->value)
+			->where(UserTokenes::TokenHash->value, hash('sha256', $token))
+			->fetch();
+
+		if () {
+			throw new Nette\Security\AuthenticationException('Address already authenticated', 403);
+		}
+
+		$now = new DateTime();
+		$token = $this->database->table(UserTokenes::Table->value)
+			->select('*')
+			->where(UserTokenes::UserId->value, $id)
+			->where(UserTokenes::Type->value, TokenType::Verification->value)
+			->where(UserTokenes::TokenHash->value, hash('sha256', $token))
+			->fetch();
+
+		if (!$token) {
+			throw new Nette\Security\AuthenticationException('Invalid token', 403);
+		}
+		// Deleting tokens and verifiing user
+		$user->update([
+			Users::VerifiedAt->value => $now,
+		]);
+		$token->update([
+			UserTokenes::UsedAt->value => $now,
+		]);
+		$this->database->table(UserTokenes::Table->value)
+			->where(UserTokenes::UserId->value, $id)
+			->where(UserTokenes::Type->value, TokenType::Cancelation->value)
+			->where(UserTokenes::UsedAt->value, null)
+			->where(UserTokenes::DeletedAt->value, null)
+			->update([UserTokenes::DeletedAt->value => $now]);*/
 	}
 
 	public function blockAddress(int $id, string $token){

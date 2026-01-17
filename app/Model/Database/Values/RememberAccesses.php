@@ -11,6 +11,10 @@ enum RememberAccesses: string{
      */
     case False = 'FALSE';
     /**
+     * True the user will be remembered for defined time (week)
+     */ 
+    case Partial = 'PARTIAL';
+    /**
      * True the user will be remembered and will not be notified again
      */ 
     case True = 'TRUE';

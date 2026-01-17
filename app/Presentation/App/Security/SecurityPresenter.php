@@ -17,12 +17,28 @@ final class SecurityPresenter extends AppBasePresenter{
     }
     public function renderVerify(int $id, string $token): void{
         try{
-            $this->securityFacade->verifyEmail($this->user->id, $token);
+            $this->securityFacade->verifyEmail($id, $token);
             $this->flashMessage('Email verification successful.', 'success');
             if($this->user->isLoggedIn()){
                 $this->redirect('Home:');
             }else{
-                $this->flashMessage('Please log in to continur', 'info');
+                $this->flashMessage('Please log in to continue', 'info');
+                $this->redirect('Sign:in');
+            }
+        } catch (\Exception $e){
+            $this->flashMessage('Email verification failed: ' . $e->getMessage(), 'error');
+            $this->redirect('Home:');
+        }
+    }
+
+    public function renderRemember(int $id, string $token): void{
+        try{
+            $this->securityFacade->rememberAddress($id, $token);
+            $this->flashMessage('This address will be remembered.', 'success');
+            if($this->user->isLoggedIn()){
+                $this->redirect('Home:');
+            }else{
+                $this->flashMessage('Please log in to continue', 'info');
                 $this->redirect('Sign:in');
             }
         } catch (\Exception $e){

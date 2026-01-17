@@ -13,6 +13,7 @@ final class SignInFormFactory{
     /**
      * username = Username;
      * password = Password;
+     * remember = Remember me;
      *
      * @return Form
      */
@@ -27,6 +28,8 @@ final class SignInFormFactory{
         $form->addPassword('password', 'Password')
             ->setHtmlAttribute('placeholder', '********')
             ->setRequired();
+
+        $form->addCheckbox('remember', 'Remember me');
 
         $form->addSubmit('send', 'Login');
 

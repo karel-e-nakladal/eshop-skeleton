@@ -1,5 +1,9 @@
 parameters:
 
+session:
+	debugger: true
+	expiration: 28 days
+
 application:
 	errorPresenter:
 		4xx: Error:Error4xx

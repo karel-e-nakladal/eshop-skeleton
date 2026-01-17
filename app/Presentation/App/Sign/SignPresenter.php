@@ -38,15 +38,23 @@ final class SignPresenter extends AppBasePresenter{
     public function createComponentSignInForm(): Form
     {
         $form = $this->signInFormFactory->create();
-        $form->onSuccess[] = function (Nette\Forms\Form $form, \stdClass $values): void {
+        $form->onSuccess[] = function (Nette\Forms\Form $form, \stdClass $data): void {
             try {
-                $this->getUser()->login($values->username, $values->password);
+                $this->getUser()->login($data->username, $data->password);
+
+                if($data->remember){
+                    $this->user->setExpiration('14 days', false);
+                }else{
+                    $this->user->setExpiration('0', true);
+                }
+                
                 $this->flashMessage('You have been signed in.', 'success');
                 $this->restoreRequest($this->backlink);
                 $this->redirect('Home:');
-            } catch (Nette\Security\AuthenticationException $e) {
+            } catch (\Exception $e) {
                 bdump($e->getMessage());
-                $form->addError('Invalid email or password.');
+                $form->addError('Login failed.');
+                $form->addError($e->getMessage());
             }
         };
         return $form;
@@ -74,8 +82,9 @@ final class SignPresenter extends AppBasePresenter{
                 $this->flashMessage('You have been signed up.', 'success');
                 $this->restoreRequest($this->backlink);
                 $this->redirect('Home:');
-            } catch (Nette\Security\AuthenticationException $e) {
+            } catch (\Exception $e) {
                 $form->addError('Sign-up failed.');
+                $form->addError( $e->getMessage());
             }
         };
         return $form;
