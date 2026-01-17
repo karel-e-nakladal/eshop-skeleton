@@ -17,6 +17,8 @@ CREATE TABLE `access_tokens` (
   CONSTRAINT `access_tokens_ibfk_2` FOREIGN KEY (`user_tokens_id`) REFERENCES `user_tokens` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin;
 
+INSERT INTO `access_tokens` (`id`, `user_access_id`, `user_tokens_id`) VALUES
+(15,	15,	49);
 
 DROP TABLE IF EXISTS `addresses`;
 CREATE TABLE `addresses` (
@@ -217,15 +219,17 @@ INSERT INTO `users` (`id`, `username`, `avatar`, `password`, `firstname`, `lastn
 DROP TABLE IF EXISTS `user_accesses`;
 CREATE TABLE `user_accesses` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `users_id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
   `from` varchar(50) NOT NULL,
-  `remember` enum('TRUE','FALSE') NOT NULL DEFAULT 'FALSE',
+  `remember` enum('TRUE','PARTIAL','FALSE') NOT NULL DEFAULT 'FALSE',
   `created_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
-  KEY `users_id` (`users_id`),
-  CONSTRAINT `user_accesses_ibfk_1` FOREIGN KEY (`users_id`) REFERENCES `users` (`id`)
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `user_accesses_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3 COLLATE=utf8mb3_bin;
 
+INSERT INTO `user_accesses` (`id`, `user_id`, `from`, `remember`, `created_at`) VALUES
+(15,	14,	'::1',	'FALSE',	'2026-01-17 20:59:22');
 
 DROP TABLE IF EXISTS `user_tokens`;
 CREATE TABLE `user_tokens` (
@@ -244,6 +248,7 @@ CREATE TABLE `user_tokens` (
 
 INSERT INTO `user_tokens` (`id`, `user_id`, `token_hash`, `type`, `created_at`, `expires_at`, `used_at`, `deleted_at`) VALUES
 (21,	14,	'5af17404c13b39728dee929accbb4467e4de4540bfddfef882008446ec8c5f94',	'VERIFICATION',	'2026-01-11 00:13:10',	'2026-01-12 00:13:10',	'2026-01-11 00:14:09',	NULL),
-(22,	14,	'3553282d5b69f837f732470bdd2e1ec7f88a1ae6ede22027be7677f3d02217b7',	'CANCELATION',	'2026-01-11 00:13:10',	'2026-01-12 00:13:10',	NULL,	'2026-01-11 00:14:09');
+(22,	14,	'3553282d5b69f837f732470bdd2e1ec7f88a1ae6ede22027be7677f3d02217b7',	'CANCELATION',	'2026-01-11 00:13:10',	'2026-01-12 00:13:10',	NULL,	'2026-01-11 00:14:09'),
+(49,	14,	'5809a872b7291268ea6e09e5571fbdc2c338d9e5076cb3050b1dcca614527fa2',	'ADDRESSBLOCK',	'2026-01-17 20:59:22',	'2026-01-24 20:59:22',	NULL,	NULL);
 
--- 2026-01-12 00:39:19
+-- 2026-01-17 21:12:07
