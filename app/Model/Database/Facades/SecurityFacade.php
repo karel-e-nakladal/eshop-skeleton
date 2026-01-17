@@ -314,56 +314,133 @@ final class SecurityFacade implements Nette\Security\Authenticator
 			->update([UserTokenes::DeletedAt->value => $now]);
 	}
 
+	/**
+	 * Authenticates the address so the user wont be prompted by email again
+	 *
+	 * @param integer $id
+	 * @param string $token
+	 * @return void
+	 */
 	public function authenticateAddress(int $id, string $token){
-	/*	$user = $this->database->table(Users::Table->value)
+		$user = $this->database->table(Users::Table->value)
 			->select('*')
 			->where(Users::Id->value, $id)
 			->where(Users::DeletedAt->value, null)
 			->fetch();
 
-		if( !$user) {
+		if(!$user) {
 			throw new RowDoesntExistException("User not found", 404);
 		}
-		$token = $this->database->table(UserTokenes::Table->value)
+
+		$tokenRow = $this->database->table(UserTokenes::Table->value)
 			->where(UserTokenes::TokenHash->value, hash('sha256', $token))
 			->fetch();
 
-		if () {
-			throw new Nette\Security\AuthenticationException('Address already authenticated', 403);
+		if (!$tokenRow) {
+			throw new Nette\Security\AuthenticationException('Invalid token', 403);
+		}
+
+		if($token[UserTokenes::DeletedAt->value != null]) {
+			throw new Nette\Security\AuthenticationException('Address has been blocked', 403);
+		}
+
+		if($token[UserTokenes::UsedAt->value != null]) {
+			throw new Nette\Security\AuthenticationException('Address has been already authenticated', 403);
 		}
 
 		$now = new DateTime();
-		$token = $this->database->table(UserTokenes::Table->value)
-			->select('*')
-			->where(UserTokenes::UserId->value, $id)
-			->where(UserTokenes::Type->value, TokenType::Verification->value)
-			->where(UserTokenes::TokenHash->value, hash('sha256', $token))
+
+		$access = $this->database->table(UserAccesses::Table->value)
+			->where(UserAccesses::Id->value, 
+				$this->database->table(AccessTokens::Table->value)
+					->select(AccessTokens::UserAccess->value)
+					->where(AccessTokens::UserToken->value, $tokenRow[UserTokenes::Id->value])
+					->fetch()
+			)
 			->fetch();
 
-		if (!$token) {
-			throw new Nette\Security\AuthenticationException('Invalid token', 403);
-		}
 		// Deleting tokens and verifiing user
-		$user->update([
-			Users::VerifiedAt->value => $now,
+		$access->update([
+			UserAccesses::Remember->value => RememberAccesses::True->value,
 		]);
-		$token->update([
+		$tokenRow->update([
 			UserTokenes::UsedAt->value => $now,
 		]);
-		$this->database->table(UserTokenes::Table->value)
-			->where(UserTokenes::UserId->value, $id)
-			->where(UserTokenes::Type->value, TokenType::Cancelation->value)
-			->where(UserTokenes::UsedAt->value, null)
-			->where(UserTokenes::DeletedAt->value, null)
-			->update([UserTokenes::DeletedAt->value => $now]);*/
-	}
 
-	public function blockAddress(int $id, string $token){
-		
+		$this->database->table(UserTokenes::Table->value)
+			->where(UserTokenes::Id->value, 
+				$this->database->table(AccessTokens::Table->value)
+				->where(AccessTokens::UserAccess->value, $access[UserAccesses::Id->value])
+				->where(AccessTokens::UserToken->value . ' != ? ' , $tokenRow[UserTokenes::Id->value])
+			)
+			->update([UserTokenes::DeletedAt->value => $now]);
 	}
 
 	/**
-	 * 
+	 * Blocks the address from being able to log in
+	 *
+	 * @param integer $id
+	 * @param string $token
+	 * @return void
+	 */
+	public function blockAddress(int $id, string $token){
+		$user = $this->database->table(Users::Table->value)
+			->select('*')
+			->where(Users::Id->value, $id)
+			->where(Users::DeletedAt->value, null)
+			->fetch();
+
+		if(!$user) {
+			throw new RowDoesntExistException("User not found", 404);
+		}
+
+		$tokenRow = $this->database->table(UserTokenes::Table->value)
+			->where(UserTokenes::TokenHash->value, hash('sha256', $token))
+			->fetch();
+
+		if (!$tokenRow) {
+			throw new Nette\Security\AuthenticationException('Invalid token', 403);
+		}
+		
+		if($token[UserTokenes::DeletedAt->value != null]) {
+			throw new Nette\Security\AuthenticationException('Address has been authenticated', 403);
+		}
+
+		if($token[UserTokenes::UsedAt->value != null]) {
+			throw new Nette\Security\AuthenticationException('Address has been already blocked', 403);
+		}
+
+
+		$now = new DateTime();
+
+		$access = $this->database->table(UserAccesses::Table->value)
+			->where(UserAccesses::Id->value, 
+				$this->database->table(AccessTokens::Table->value)
+					->select(AccessTokens::UserAccess->value)
+					->where(AccessTokens::UserToken->value, $tokenRow[UserTokenes::Id->value])
+					->fetch()
+			)
+			->fetch();
+
+		// Deleting tokens and verifiing user
+		$access->update([
+			UserAccesses::Remember->value => RememberAccesses::Blocked->value,
+		]);
+		$tokenRow->update([
+			UserTokenes::UsedAt->value => $now,
+		]);
+		
+		$this->database->table(UserTokenes::Table->value)
+			->where(UserTokenes::Id->value, 
+				$this->database->table(AccessTokens::Table->value)
+				->where(AccessTokens::UserAccess->value, $access[UserAccesses::Id->value])
+				->where(AccessTokens::UserToken->value . ' != ? ' , $tokenRow[UserTokenes::Id->value])
+			)
+			->update([UserTokenes::DeletedAt->value => $now]);
+	}
+
+	/**
+	 * Cancels the account
 	 *
 	 * @param integer $id
 	 * @param string $token

@@ -11,9 +11,13 @@ enum RememberAccesses: string{
      */
     case False = 'FALSE';
     /**
-     * True the user will be remembered for defined time (week)
+     * Partial the user will be remembered for defined time (week)
      */ 
     case Partial = 'PARTIAL';
+    /**
+     * Blocked the user will be prohibited from logging in on this address
+     */ 
+    case Blocked = 'BLOCKED';
     /**
      * True the user will be remembered and will not be notified again
      */ 
